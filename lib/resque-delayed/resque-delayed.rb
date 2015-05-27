@@ -1,7 +1,7 @@
 module Resque
   module Delayed
-    @queue = "Resque::Delayed:internal"
-
+    @queue = "Resque::Delayed:internal"	
+	
     class << self
       def random_uuid
         UUIDTools::UUID.random_create.to_s.gsub('-', '')
@@ -29,7 +29,14 @@ module Resque
       end
 
       def encode(queue, klass, *args)
-        "#{random_uuid}|#{Resque.encode([queue, klass.to_s, *args])}"
+		unless defined? @uniq_task
+		  @uniq_task = ENV['UNIQ'].to_i == 1
+		end
+		if @uniq_task
+		  "#{random_uuid}|#{Resque.encode([queue, klass.to_s, *args])}"
+		else
+		  "#{Resque.encode([queue, klass.to_s, *args])}"
+		end
       end
 
       def decode(encoded_job)
